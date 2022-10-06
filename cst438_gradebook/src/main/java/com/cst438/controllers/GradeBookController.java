@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -173,87 +174,74 @@ public class GradeBookController {
 		return assignment;
 	}
 	
-	//	creating a new assigment
-	//STORY: As an instructor for a course , I can add a new assignment for my course.  The assignment has a name and a due date.
-//	@PostMapping("/assignment")
-//	@Transactional
-//	public void createAssignment (@RequestBody AssignmentListDTO.AssignmentDTO assignment) 
-//	{
-//		String instructor = "dwisneski@csumb.edu";
-//		Assignment userAssignment = new Assignment();
-//		userAssignment.setId(assignment.assignmentId);
-//		userAssignment.setName(assignment.assignmentName);
-//		var date = Date.valueOf(assignment.dueDate);
-//		userAssignment.setDueDate(date);
-//		System.out.printf("date=%s\n", date);
-//		userAssignment.setNeedsGrading(assignment.needsGrading);
-//		
-//		var courseId = courseRepository.findById(assignment.courseId);
-//		if(courseId.isPresent())
-//		{
-//			userAssignment.setCourse(courseId.get());
-//		}
-//		if(userAssignment.getCourse().getInstructor().equals(instructor))
-//		{
-//			assignmentRepository.save(userAssignment);
-//		}
-//		else
-//		{
-//			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Instructor is not authorized to add new assignment");
-//		}
-//	}
-	
+//		creating a new assigment
+//	STORY: As an instructor for a course , I can add a new assignment for my course.  The assignment has a name and a due date.
 	@PostMapping("/assignment")
 	@Transactional
-	public void createAssignment (@RequestBody Assignment assignment) 
+	public void createAssignment (@RequestBody AssignmentListDTO.AssignmentDTO assignment) 
 	{
+		String instructor = "dwisneski@csumb.edu";
 		Assignment userAssignment = new Assignment();
-		userAssignment.setId(assignment.getId());
-		userAssignment.setName(assignment.getName());
-		userAssignment.setDueDate(assignment.getDueDate());
-		userAssignment.setNeedsGrading(assignment.getNeedsGrading());
-		userAssignment.setCourse(assignment.getCourse());
-		assignmentRepository.save(userAssignment);
+		userAssignment.setId(assignment.assignmentId);
+		userAssignment.setName(assignment.assignmentName);
+		Date date = Date.valueOf(assignment.dueDate);
+		userAssignment.setDueDate(date);
+		System.out.printf("date=%s\n", date);
+		userAssignment.setNeedsGrading(assignment.needsGrading);
+		
+		
+		var courseId = courseRepository.findById(assignment.courseId);
+		if(courseId.isPresent())
+		{
+			userAssignment.setCourse(courseId.get());
+			assignmentRepository.save(userAssignment);
+		}
+		else
+		{
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Course does not exist");
+		}
 	}
+	
 	
 	//UPDATING ASSIGNMENT NAME	
 	//	STORY: As an instructor, I can change the name of the assignment for my course.
 	@PutMapping("/assignment/{id}")
 	@Transactional
-	public void updateAssignment(@RequestBody AssignmentListDTO assignment, @PathVariable("id") Integer assignmentId ) 
+	public void updateAssignment( @RequestBody AssignmentListDTO.AssignmentDTO assignment,@PathVariable("id") Integer assignmentId ) 
 	{
 		
 		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
 		checkAssignment(assignmentId, email);  // check that user name matches instructor email of the course.
-
-		for (AssignmentDTO a : assignment.assignments) {
-			System.out.printf("%s\n", a.toString());
-			Assignment assign = assignmentRepository.findById(a.assignmentId).orElse(null);
+		
+		
+			Assignment assign = assignmentRepository.findById(assignmentId).orElse(null);
 			if (assign == null) {
 				throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Invalid assignment id.");
 			}
-			assign.setName(a.assignmentName);
+			assign.setName(assignment.assignmentName);
 			System.out.printf("%s\n", assign.toString());
 			
 			assignmentRepository.save(assign);
-		}
 		
 	}
 	
 //	DELETING AN ASSIGNMENT
 //	As an instructor, I can delete an assignment  for my course (only if there are no grades for the assignment).
-	
-	@PatchMapping("/deleteAssignment")
+	@DeleteMapping("/assignment/{id}")
 	@Transactional
-	public void deleteAssignment( @RequestBody Assignment assignment) 
+	public void deleteAssignment(@PathVariable("id") Integer assignmentId ) 
 	{ 
-		if (assignment.getNeedsGrading() != 0) 
+		Assignment assign = assignmentRepository.findById(assignmentId).orElse(null);
+		if (assign == null) {
+			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Invalid assignment id.");
+		}
+		else if (assign.getNeedsGrading() != 0) 
 		{
 			throw  new ResponseStatusException( HttpStatus.BAD_REQUEST, "Assignment has grades submitted");
 		}
 		else
 		{
-		assignmentRepository.delete(assignment);
+		assignmentRepository.delete(assign);
 		
 		}
 	}		
