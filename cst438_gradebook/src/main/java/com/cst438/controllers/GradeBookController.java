@@ -2,6 +2,7 @@ package com.cst438.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.sql.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -186,11 +187,13 @@ public class GradeBookController {
 		userAssignment.setName(assignment.assignmentName);
 		Date date = Date.valueOf(assignment.dueDate);
 		userAssignment.setDueDate(date);
-		System.out.printf("date=%s\n", date);
 		userAssignment.setNeedsGrading(assignment.needsGrading);
 		
-		
-		var courseId = courseRepository.findById(assignment.courseId);
+//		Optional<Course> courseId = courseRepository.findById(assignment.courseId);
+//		userAssignment.setCourse(courseId.get());
+//		assignmentRepository.save(userAssignment);
+//		
+		Optional<Course> courseId = courseRepository.findById(assignment.courseId);
 		if(courseId.isPresent())
 		{
 			userAssignment.setCourse(courseId.get());
