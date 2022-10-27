@@ -16,6 +16,7 @@ public class Course {
 	private String instructor;
 	private int year;
 	private String semester;
+
 	
 	@OneToMany(mappedBy="course")
 	@OrderBy("studentName ASC")
